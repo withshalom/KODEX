@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<!--
+  KODEX™ — Knowledge & Reference for Fabrication, CNC, and Machining
+  Part of the KERFsuite™ design suite
+  Copyright (C) 2024-2025 KERFsuite / withshalom
+  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KODEX™ — Machinist's Reference Bible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Fira+Code:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Core palette — forge & foundry */
+  --void:     #07080a;
+  --surface:  #0d0f12;
+  --panel:    #131519;
+  --panel2:   #191c21;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.04);
+
+  --text1:    #f0ece3;
+  --text2:    #9a9288;
+  --text3:    #4a4238;
+
+  /* KODEX accent — molten amber / forge iron */
+  --kdx:       #e8a020;
+  --kdx-deep:  #b87010;
+  --kdx-hot:   #ff6820;
+  --kdx-g:     rgba(232,160,32,0.11);
+  --kdx-glow:  rgba(232,160,32,0.18);
+
+  /* Section colors */
+  --cnc:   #00d4ff;
+  --gcode: #e8a020;
+  --mech:  #c8c0b8;
+  --weld:  #ff4422;
+  --laser: #00ff88;
+  --plasma:#a060ff;
+  --fab:   #ff8800;
+  --const: #4a8fd4;
+
+  --ff-display: 'Syne', sans-serif;
+  --ff-serif:   'DM Serif Display', serif;
+  --ff-mono:    'Fira Code', monospace;
+
+  --sidebar-w: 280px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--void);
+  color: var(--text1);
+  font-family: var(--ff-display);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── GRAIN OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+/* ── FINE GRID ── */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+/* ── TOP NAV ── */
+.topnav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 52px;
+  background: rgba(7,8,10,0.96);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  backdrop-filter: blur(12px);
+}
+
+.nav-brand {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.nav-logo {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #e8a020, #b87010, #ff6820);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  font-weight: 600;
+  color: #000;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 16px rgba(232,160,32,0.4);
+}
+
+.nav-wordmark {
+  font-family: var(--ff-display);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  color: var(--kdx);
+}
+.nav-wordmark sup {
+  font-size: 8px;
+  color: var(--text3);
+  vertical-align: super;
+}
+
+.nav-subtitle {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-left: 1px solid var(--border2);
+  padding-left: 12px;
+  margin-left: 4px;
+}
+
+.nav-right {
+  display: flex; align-items: center; gap: 20px;
+}
+
+.nav-badge {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--kdx);
+  border: 1px solid rgba(232,160,32,0.3);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* ── SEARCH BAR ── */
+.search-wrap {
+  position: relative;
+  display: flex; align-items: center;
+}
+
+.search-input {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text1);
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  padding: 6px 12px 6px 32px;
+  border-radius: 6px;
+  width: 240px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-input::placeholder { color: var(--text3); }
+.search-input:focus {
+  border-color: rgba(232,160,32,0.5);
+  box-shadow: 0 0 0 3px rgba(232,160,32,0.08);
+}
+
+.search-icon {
+  position: absolute; left: 10px;
+  width: 12px; height: 12px;
+  color: var(--text3);
+  pointer-events: none;
+}
+
+.search-results {
+  display: none;
+  position: absolute; top: calc(100% + 6px); left: 0;
+  width: 360px;
+  background: var(--panel);
+  border: 1px solid rgba(232,160,32,0.3);
+  border-radius: 8px;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.6);
+  z-index: 500;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.search-results.open { display: block; }
+.search-result-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border2);
+  transition: background 0.15s;
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: rgba(232,160,32,0.07); }
+.search-result-cat {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--kdx);
+  min-width: 52px;
+}
+.search-result-title {
+  font-size: 12px;
+  color: var(--text1);
+}
+.search-result-sub {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  color: var(--text2);
+  margin-top: 1px;
+}
+
+/* ── LAYOUT SHELL ── */
+.app-shell {
+  display: flex;
+  position: relative; z-index: 1;
+  padding-top: 52px;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  position: fixed;
+  top: 52px; bottom: 0; left: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 100;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text3) transparent;
+}
+
+.sidebar-section {
+  padding: 20px 0 8px;
+}
+
+.sidebar-section-title {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 0 20px;
+  margin-bottom: 8px;
+}
+
+.sidebar-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 20px;
+  font-size: 12px;
+  color: var(--text2);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  border-left: 2px solid transparent;
+}
+.sidebar-link:hover {
+  color: var(--text1);
+  background: rgba(255,255,255,0.03);
+}
+.sidebar-link.active {
+  color: var(--kdx);
+  border-left-color: var(--kdx);
+  background: rgba(232,160,32,0.05);
+}
+
+.sidebar-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sidebar-link:hover .sidebar-dot { opacity: 1; }
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border2);
+  margin: 8px 20px;
+}
+
+/* ── MAIN CONTENT ── */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── HERO SECTION ── */
+.hero {
+  padding: 64px 64px 56px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 80% at 80% 50%, rgba(232,160,32,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Decorative cross-hatch corner */
+.hero::after {
+  content: '';
+  position: absolute; top: 0; right: 0;
+  width: 280px; height: 280px;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(232,160,32,0.04) 0, rgba(232,160,32,0.04) 1px, transparent 0, transparent 50%);
+  background-size: 12px 12px;
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--kdx);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+  opacity: 0;
+  animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s forwards;
+}
+
+.hero-eyebrow::before {
+  content: '';
+  width: 28px; height: 1px;
+  background: var(--kdx);
+}
+
+.hero-title {
+  font-family: var(--ff-display);
+  font-size: clamp(56px, 7vw, 88px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.2s forwards;
+}
+
+.hero-title .k { color: var(--kdx); }
+.hero-title .odex {
+  background: linear-gradient(90deg, #e8a020, #f0c060, #c0b8b0, #ff6820);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: titlePan 5s ease-in-out infinite alternate;
+}
+
+.hero-rule {
+  width: 64px; height: 2px;
+  background: linear-gradient(90deg, var(--kdx), transparent);
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
+}
+
+.hero-desc {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text2);
+  max-width: 520px;
+  margin-bottom: 36px;
+  opacity: 0;
+  animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.35s forwards;
+}
+
+.hero-stats {
+  display: flex; gap: 40px; flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.45s forwards;
+}
+
+.hero-stat {
+  display: flex; flex-direction: column; gap: 4px;
+}
+
+.hero-stat-num {
+  font-family: var(--ff-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--kdx);
+  letter-spacing: -0.02em;
+}
+
+.hero-stat-label {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+/* ── QUICK REFERENCE CARDS ── */
+.qr-section {
+  padding: 48px 64px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-header {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 28px;
+}
+
+.section-badge {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #000;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--kdx);
+}
+
+.section-title {
+  font-family: var(--ff-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text1);
+}
+
+.section-sub {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-left: auto;
+}
+
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.qr-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.qr-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--qr-color, var(--kdx));
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.qr-card:hover {
+  border-color: var(--qr-color, var(--kdx));
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 24px var(--qr-glow, rgba(232,160,32,0.12));
+}
+
+.qr-card:hover::before { opacity: 1; }
+
+.qr-icon {
+  font-family: var(--ff-mono);
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.qr-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text1);
+  margin-bottom: 4px;
+}
+
+.qr-card-value {
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  color: var(--qr-color, var(--kdx));
+  font-weight: 500;
+}
+
+.qr-card-sub {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+/* ── CONTENT SECTIONS ── */
+.content-section {
+  padding: 56px 64px;
+  border-bottom: 1px solid var(--border);
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.content-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── REFERENCE TABLES ── */
+.ref-table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ref-table thead tr {
+  background: var(--panel2);
+  border-bottom: 1px solid var(--border);
+}
+
+.ref-table th {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 10px 16px;
+  text-align: left;
+  font-weight: 400;
+}
+
+.ref-table td {
+  padding: 9px 16px;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border2);
+  vertical-align: top;
+}
+
+.ref-table tr:last-child td { border-bottom: none; }
+
+.ref-table tbody tr:hover td {
+  background: rgba(255,255,255,0.02);
+  color: var(--text1);
+}
+
+.ref-table td.mono {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  color: var(--kdx);
+}
+
+.ref-table td.highlight {
+  color: var(--text1);
+  font-weight: 600;
+}
+
+/* ── CODE BLOCKS ── */
+.code-block {
+  background: #0a0c0f;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--kdx);
+  border-radius: 0 8px 8px 0;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-x: auto;
+  position: relative;
+}
+
+.code-block .cb-label {
+  position: absolute; top: 8px; right: 12px;
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.code-block .cmd { color: var(--kdx); }
+.code-block .val { color: #00d4ff; }
+.code-block .cmt { color: var(--text3); }
+.code-block .str { color: #00ff88; }
+.code-block .key { color: #a060ff; }
+
+/* ── FORMULA CARDS ── */
+.formula-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.formula-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.formula-label {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 10px;
+}
+
+.formula-eq {
+  font-family: var(--ff-mono);
+  font-size: 15px;
+  color: var(--kdx);
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+
+.formula-desc {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+/* ── CALCULATOR ── */
+.calc-block {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.calc-block::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--kdx), var(--kdx-hot), transparent);
+}
+
+.calc-title {
+  font-family: var(--ff-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text1);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.calc-title span {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  color: var(--kdx);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.calc-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.field-group {
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.field-label {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.field-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text1);
+  font-family: var(--ff-mono);
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+.field-input:focus {
+  border-color: rgba(232,160,32,0.5);
+}
+
+.field-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text1);
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.field-select:focus { border-color: rgba(232,160,32,0.5); }
+
+.calc-btn {
+  background: linear-gradient(135deg, var(--kdx), var(--kdx-deep));
+  border: none;
+  color: #000;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.2s;
+  box-shadow: 0 0 20px rgba(232,160,32,0.3);
+}
+.calc-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 28px rgba(232,160,32,0.45);
+}
+.calc-btn:active { transform: translateY(0); }
+
+.calc-result {
+  margin-top: 16px;
+  background: rgba(232,160,32,0.06);
+  border: 1px solid rgba(232,160,32,0.2);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: none;
+}
+.calc-result.show { display: block; }
+
+.result-label {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+
+.result-value {
+  font-family: var(--ff-mono);
+  font-size: 20px;
+  color: var(--kdx);
+  font-weight: 500;
+}
+
+.result-unit {
+  font-size: 12px;
+  color: var(--text3);
+  margin-left: 4px;
+}
+
+.result-sub {
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* ── TAG / CHIP ── */
+.chip {
+  display: inline-block;
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  opacity: 0.7;
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+/* ── SECTION HEADING ── */
+.sh {
+  font-family: var(--ff-display);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text1);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border2);
+  display: flex; align-items: center; gap: 12px;
+}
+
+.sh-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--section-color, var(--kdx));
+  box-shadow: 0 0 10px var(--section-color, var(--kdx));
+  flex-shrink: 0;
+}
+
+.text-block {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text2);
+  margin-bottom: 20px;
+  max-width: 680px;
+}
+
+.text-block strong { color: var(--text1); font-weight: 600; }
+
+.note-block {
+  background: rgba(232,160,32,0.06);
+  border: 1px solid rgba(232,160,32,0.18);
+  border-left: 3px solid var(--kdx);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.note-block strong { color: var(--kdx); }
+
+/* ── RESOURCE LINKS ── */
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.resource-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  text-decoration: none;
+  color: inherit;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.resource-card:hover {
+  border-color: var(--kdx);
+  transform: translateY(-2px);
+}
+
+.resource-org {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--kdx);
+}
+
+.resource-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.resource-desc {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+.resource-url {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  color: var(--text3);
+  display: flex; align-items: center; gap: 4px;
+  margin-top: auto;
+}
+
+/* ── KERF LINK ── */
+.kerf-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text3);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.kerf-back:hover { color: var(--text1); border-color: var(--border); }
+
+/* ── FOOTER ── */
+.kfooter {
+  border-top: 1px solid var(--border);
+  padding: 36px 64px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  position: relative; z-index: 1;
+  margin-left: var(--sidebar-w);
+}
+
+.kfooter-brand {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+  color: var(--text3);
+}
+
+.kfooter-copy {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes titlePan {
+  0%   { background-position: 0% center; }
+  100% { background-position: 100% center; }
+}
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 0px; }
+  .sidebar { display: none; }
+  .main-content { margin-left: 0; }
+  .kfooter { margin-left: 0; }
+  .hero { padding: 32px 24px 40px; }
+  .qr-section, .content-section { padding: 36px 24px; }
+  .search-input { width: 160px; }
+  .nav-subtitle { display: none; }
+  .nav-badge { display: none; }
+  .hero-stats { gap: 24px; }
+  .kfooter { padding: 28px 24px; }
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--text3); border-radius: 3px; }
+
+/* ── ACTIVE SECTION HIGHLIGHT ── */
+.content-section { scroll-margin-top: 72px; }
+</style>
+</head>
+<body>
+
+<!-- ── TOP NAV ── -->
+<nav class="topnav">
+  <div class="nav-brand">
+    <div class="nav-logo">KDX</div>
+    <div class="nav-wordmark">KODEX<sup>™</sup></div>
+    <div class="nav-subtitle">Machinist's Reference</div>
+  </div>
+  <div class="nav-right">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 3 3"/>
+      </svg>
+      <input class="search-input" id="searchInput" type="text" placeholder="Search formulas, G-codes, specs…" autocomplete="off">
+      <div class="search-results" id="searchResults"></div>
+    </div>
+    <div class="nav-badge">v1.0 Draft</div>
+    <a href="#" class="kerf-back">← KERFsuite</a>
+  </div>
+</nav>
+
+<!-- ── APP SHELL ── -->
+<div class="app-shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Overview</div>
+      <a class="sidebar-link active" href="#hero" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#e8a020"></span>
+        Introduction
+      </a>
+      <a class="sidebar-link" href="#quickref" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#e8a020"></span>
+        Quick Reference
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">G-Code & CNC</div>
+      <a class="sidebar-link" href="#gcode" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#e8a020"></span>
+        G-Code Reference
+      </a>
+      <a class="sidebar-link" href="#mcode" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#e8a020"></span>
+        M-Code Reference
+      </a>
+      <a class="sidebar-link" href="#feeds" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#00d4ff"></span>
+        Feeds & Speeds
+      </a>
+      <a class="sidebar-link" href="#cnc-calc" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#00d4ff"></span>
+        CNC Calculator
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Mechanical</div>
+      <a class="sidebar-link" href="#tolerances" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#c8c0b8"></span>
+        Fits & Tolerances
+      </a>
+      <a class="sidebar-link" href="#threads" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#c8c0b8"></span>
+        Thread Standards
+      </a>
+      <a class="sidebar-link" href="#materials" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#c8c0b8"></span>
+        Material Properties
+      </a>
+      <a class="sidebar-link" href="#formulas" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#c8c0b8"></span>
+        Engineering Formulas
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Cutting Processes</div>
+      <a class="sidebar-link" href="#plasma" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#a060ff"></span>
+        Plasma Cutting
+      </a>
+      <a class="sidebar-link" href="#laser" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#00ff88"></span>
+        Laser Cutting
+      </a>
+      <a class="sidebar-link" href="#waterjet" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#00d4ff"></span>
+        Waterjet
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Welding & Fab</div>
+      <a class="sidebar-link" href="#welding" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#ff4422"></span>
+        Welding Processes
+      </a>
+      <a class="sidebar-link" href="#weld-settings" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#ff4422"></span>
+        Weld Settings
+      </a>
+      <a class="sidebar-link" href="#fab" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#ff8800"></span>
+        Sheet Metal Fab
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Resources</div>
+      <a class="sidebar-link" href="#resources" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#4a8fd4"></span>
+        Official Resources
+      </a>
+      <a class="sidebar-link" href="#standards" onclick="setActive(this)">
+        <span class="sidebar-dot" style="background:#4a8fd4"></span>
+        Standards Bodies
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="main-content">
+
+    <!-- ── HERO ── -->
+    <section class="hero" id="hero">
+      <div class="hero-eyebrow">KERFsuite · KODEX Module · Rev A</div>
+      <h1 class="hero-title">
+        <span class="k">K</span><span class="odex">ODEX</span>
+      </h1>
+      <div class="hero-rule"></div>
+      <p class="hero-desc">
+        The machinist's reference bible. G-code, CNC parameters, mechanical engineering formulas, plasma &amp; laser cutting settings, welding procedures, and fabrication standards — unified in one searchable knowledge base.
+      </p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num">200+</div>
+          <div class="hero-stat-label">G / M Codes</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">8</div>
+          <div class="hero-stat-label">Process Types</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">12</div>
+          <div class="hero-stat-label">Calculators</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">60+</div>
+          <div class="hero-stat-label">Ref Tables</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── QUICK REFERENCE ── -->
+    <section class="qr-section" id="quickref">
+      <div class="section-header">
+        <div class="section-badge">Quick Ref</div>
+        <div class="section-title">At a Glance</div>
+        <div class="section-sub">Common values &amp; constants</div>
+      </div>
+      <div class="qr-grid">
+        <div class="qr-card" style="--qr-color:#00d4ff;--qr-glow:rgba(0,212,255,0.12)">
+          <div class="qr-icon">⚙</div>
+          <div class="qr-card-title">Spindle Speed</div>
+          <div class="qr-card-value">N = (SFM × 3.82) / D</div>
+          <div class="qr-card-sub">RPM from surface speed</div>
+        </div>
+        <div class="qr-card" style="--qr-color:#e8a020;--qr-glow:rgba(232,160,32,0.12)">
+          <div class="qr-icon">→</div>
+          <div class="qr-card-title">Feed Rate</div>
+          <div class="qr-card-value">F = N × IPT × Z</div>
+          <div class="qr-card-sub">in/min from chip load</div>
+        </div>
+        <div class="qr-card" style="--qr-color:#00ff88;--qr-glow:rgba(0,255,136,0.12)">
+          <div class="qr-icon">◻</div>
+          <div class="qr-card-title">Kerf Width</div>
+          <div class="qr-card-value">laser: 0.1–0.3mm</div>
+          <div class="qr-card-sub">plasma: 1–3mm typical</div>
+        </div>
+        <div class="qr-card" style="--qr-color:#a060ff;--qr-glow:rgba(160,96,255,0.12)">
+          <div class="qr-icon">⚡</div>
+          <div class="qr-card-title">Plasma Voltage</div>
+          <div class="qr-card-value">100–200V arc</div>
+          <div class="qr-card-sub">depends on thickness + gas</div>
+        </div>
+        <div class="qr-card" style="--qr-color:#ff4422;--qr-glow:rgba(255,68,34,0.12)">
+          <div class="qr-icon">🔥</div>
+          <div class="qr-card-title">Weld Preheat (steel)</div>
+          <div class="qr-card-value">≥150 °F for &gt;1″</div>
+          <div class="qr-card-sub">per AWS D1.1</div>
+        </div>
+        <div class="qr-card" style="--qr-color:#ff8800;--qr-glow:rgba(255,136,0,0.12)">
+          <div class="qr-icon">⬛</div>
+          <div class="qr-card-title">Bend Allowance</div>
+          <div class="qr-card-value">BA = (π/180) × r × A</div>
+          <div class="qr-card-sub">inside radius method</div>
+        </div>
+        <div class="qr-card" style="--qr-color:#c8c0b8;--qr-glow:rgba(200,192,184,0.08)">
+          <div class="qr-icon">∿</div>
+          <div class="qr-card-title">Tensile (mild steel)</div>
+          <div class="qr-card-value">400–500 MPa</div>
+          <div class="qr-card-sub">A36 / S275</div>
+        </div>
+        <div class="qr-card" style="--qr-color:#4a8fd4;--qr-glow:rgba(74,143,212,0.12)">
+          <div class="qr-icon">△</div>
+          <div class="qr-card-title">Drill Speed (HSS)</div>
+          <div class="qr-card-value">40–80 SFM (steel)</div>
+          <div class="qr-card-sub">200–300 SFM (aluminum)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── G-CODE ── -->
+    <section class="content-section" id="gcode">
+      <div class="section-header">
+        <div class="section-badge" style="background:var(--gcode);color:#000">G-Code</div>
+        <div class="section-title">G-Code Reference</div>
+      </div>
+
+      <p class="text-block">
+        G-codes (preparatory codes) direct the machine's physical motion and positioning. The following table covers the most common modal and non-modal G-codes per <strong>FANUC / ISO 6983</strong> conventions. Always verify against your specific controller's documentation.
+      </p>
+
+      <div class="note-block">
+        <strong>⚠ Controller Variance:</strong> G-code interpretation varies by controller (FANUC, Siemens, Haas, GRBL, LinuxCNC). Always check your machine's specific programming manual. This table follows ISO 6983 / FANUC 0i conventions.
+      </div>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr>
+              <th>Code</th><th>Function</th><th>Type</th><th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">G00</td><td class="highlight">Rapid Positioning</td><td>Modal (0)</td><td class="mono">G00 X10 Y10 Z5</td></tr>
+            <tr><td class="mono">G01</td><td class="highlight">Linear Interpolation</td><td>Modal (0)</td><td class="mono">G01 X50 Y30 F200</td></tr>
+            <tr><td class="mono">G02</td><td>Circular Interpolation CW</td><td>Modal (0)</td><td class="mono">G02 X20 Y20 I5 J0 F150</td></tr>
+            <tr><td class="mono">G03</td><td>Circular Interpolation CCW</td><td>Modal (0)</td><td class="mono">G03 X20 Y20 R10 F150</td></tr>
+            <tr><td class="mono">G04</td><td>Dwell (pause)</td><td>Non-modal</td><td class="mono">G04 P500</td></tr>
+            <tr><td class="mono">G17</td><td>XY Plane Selection</td><td>Modal (2)</td><td class="mono">G17</td></tr>
+            <tr><td class="mono">G18</td><td>XZ Plane Selection</td><td>Modal (2)</td><td class="mono">G18</td></tr>
+            <tr><td class="mono">G19</td><td>YZ Plane Selection</td><td>Modal (2)</td><td class="mono">G19</td></tr>
+            <tr><td class="mono">G20</td><td>Inch Units</td><td>Modal (6)</td><td class="mono">G20</td></tr>
+            <tr><td class="mono">G21</td><td>Millimetre Units</td><td>Modal (6)</td><td class="mono">G21</td></tr>
+            <tr><td class="mono">G28</td><td>Return to Machine Home</td><td>Non-modal</td><td class="mono">G28 Z0</td></tr>
+            <tr><td class="mono">G40</td><td>Cancel Cutter Compensation</td><td>Modal (7)</td><td class="mono">G40</td></tr>
+            <tr><td class="mono">G41</td><td>Cutter Comp Left</td><td>Modal (7)</td><td class="mono">G41 D01</td></tr>
+            <tr><td class="mono">G42</td><td>Cutter Comp Right</td><td>Modal (7)</td><td class="mono">G42 D01</td></tr>
+            <tr><td class="mono">G43</td><td>Tool Length Offset +</td><td>Modal (8)</td><td class="mono">G43 H01 Z5</td></tr>
+            <tr><td class="mono">G49</td><td>Cancel Tool Length Offset</td><td>Modal (8)</td><td class="mono">G49</td></tr>
+            <tr><td class="mono">G54–G59</td><td>Work Coordinate Systems</td><td>Modal (14)</td><td class="mono">G54</td></tr>
+            <tr><td class="mono">G73</td><td>High-Speed Peck Drill Cycle</td><td>Modal (9)</td><td class="mono">G73 X0 Y0 Z-20 Q3 R2 F80</td></tr>
+            <tr><td class="mono">G74</td><td>Left-Hand Tapping Cycle</td><td>Modal (9)</td><td class="mono">G74 X0 Y0 Z-15 F125</td></tr>
+            <tr><td class="mono">G76</td><td>Fine Boring Cycle</td><td>Modal (9)</td><td class="mono">G76 X0 Z-20 R0.5 F50</td></tr>
+            <tr><td class="mono">G80</td><td>Cancel Canned Cycle</td><td>Modal (9)</td><td class="mono">G80</td></tr>
+            <tr><td class="mono">G81</td><td>Drill Cycle</td><td>Modal (9)</td><td class="mono">G81 X10 Y10 Z-20 R2 F100</td></tr>
+            <tr><td class="mono">G83</td><td>Deep Peck Drill Cycle</td><td>Modal (9)</td><td class="mono">G83 Z-40 Q5 R2 F60</td></tr>
+            <tr><td class="mono">G84</td><td>Tapping Cycle</td><td>Modal (9)</td><td class="mono">G84 Z-15 F125</td></tr>
+            <tr><td class="mono">G90</td><td>Absolute Positioning</td><td>Modal (3)</td><td class="mono">G90</td></tr>
+            <tr><td class="mono">G91</td><td>Incremental Positioning</td><td>Modal (3)</td><td class="mono">G91</td></tr>
+            <tr><td class="mono">G92</td><td>Set Work Coordinate Origin</td><td>Non-modal</td><td class="mono">G92 X0 Y0 Z0</td></tr>
+            <tr><td class="mono">G94</td><td>Feed per Minute</td><td>Modal (5)</td><td class="mono">G94</td></tr>
+            <tr><td class="mono">G95</td><td>Feed per Revolution</td><td>Modal (5)</td><td class="mono">G95</td></tr>
+            <tr><td class="mono">G96</td><td>Constant Surface Speed</td><td>Modal (13)</td><td class="mono">G96 S200</td></tr>
+            <tr><td class="mono">G97</td><td>Constant Spindle Speed</td><td>Modal (13)</td><td class="mono">G97 S1500</td></tr>
+            <tr><td class="mono">G98</td><td>Return to Initial Plane</td><td>Modal (10)</td><td class="mono">G98</td></tr>
+            <tr><td class="mono">G99</td><td>Return to R Plane</td><td>Modal (10)</td><td class="mono">G99</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sh" id="mcode" style="--section-color:#e8a020">
+        <span class="sh-dot"></span>M-Code Reference
+      </div>
+      <p class="text-block">
+        M-codes (miscellaneous functions) control machine auxiliary functions: spindle, coolant, tool change, and program flow.
+      </p>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Code</th><th>Function</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">M00</td><td class="highlight">Program Stop</td><td>Stops spindle, coolant, feed — requires cycle start to resume</td></tr>
+            <tr><td class="mono">M01</td><td>Optional Stop</td><td>Active only when Optional Stop switch is ON</td></tr>
+            <tr><td class="mono">M02</td><td>End of Program</td><td>Returns control to start, may reset offsets</td></tr>
+            <tr><td class="mono">M03</td><td class="highlight">Spindle CW</td><td>M03 S1500 — start spindle clockwise at 1500 RPM</td></tr>
+            <tr><td class="mono">M04</td><td>Spindle CCW</td><td>For left-hand tools or reverse tapping</td></tr>
+            <tr><td class="mono">M05</td><td>Spindle Stop</td><td>Decelerates and stops spindle</td></tr>
+            <tr><td class="mono">M06</td><td class="highlight">Tool Change</td><td>M06 T02 — change to tool 2</td></tr>
+            <tr><td class="mono">M07</td><td>Coolant Mist ON</td><td>Activates mist coolant</td></tr>
+            <tr><td class="mono">M08</td><td class="highlight">Flood Coolant ON</td><td>Activates flood coolant</td></tr>
+            <tr><td class="mono">M09</td><td>Coolant OFF</td><td>Deactivates all coolant</td></tr>
+            <tr><td class="mono">M19</td><td>Spindle Orient</td><td>Positions spindle at defined angle for tool change</td></tr>
+            <tr><td class="mono">M30</td><td class="highlight">End of Program + Reset</td><td>Ends program and resets to start, preferred over M02</td></tr>
+            <tr><td class="mono">M48</td><td>Enable Override</td><td>Re-enables feed/speed override controls</td></tr>
+            <tr><td class="mono">M49</td><td>Disable Override</td><td>Locks feed/speed overrides at 100%</td></tr>
+            <tr><td class="mono">M98</td><td>Call Subprogram</td><td>M98 P1234 L3 — call O1234 three times</td></tr>
+            <tr><td class="mono">M99</td><td>Return from Subprogram</td><td>Returns to main program after M98 call</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sh" style="--section-color:#00d4ff">
+        <span class="sh-dot" style="background:#00d4ff;box-shadow:0 0 10px #00d4ff"></span>
+        Example Program Structure
+      </div>
+      <div class="code-block">
+        <span class="cb-label">G-Code · FANUC</span>
+        <span class="cmt">( KODEX Sample Program — Face Mill Op )</span><br>
+        <span class="key">O0001</span>                            <span class="cmt">( Program number )</span><br>
+        <span class="cmd">N10 G21 G17 G40 G49 G80 G90</span>     <span class="cmt">( Safety line: mm, XY, cancel comp/TLO/cycles, absolute )</span><br>
+        <span class="cmd">N20 G28 G91 Z0</span>                   <span class="cmt">( Return Z to home )</span><br>
+        <span class="cmd">N30 T01 M06</span>                       <span class="cmt">( Tool change: T01 face mill )</span><br>
+        <span class="cmd">N40 G54</span>                           <span class="cmt">( Work offset 1 )</span><br>
+        <span class="cmd">N50 G43 H01 Z50</span>                   <span class="cmt">( Tool length offset, rapid to Z50 )</span><br>
+        <span class="cmd">N60 M03 S</span><span class="val">1200</span>                   <span class="cmt">( Spindle CW 1200 RPM )</span><br>
+        <span class="cmd">N70 M08</span>                           <span class="cmt">( Flood coolant ON )</span><br>
+        <span class="cmd">N80 G00 X</span><span class="val">-10</span> <span class="cmd">Y</span><span class="val">0</span>               <span class="cmt">( Rapid to start XY )</span><br>
+        <span class="cmd">N90 G00 Z</span><span class="val">2</span>                      <span class="cmt">( Rapid to Z clearance )</span><br>
+        <span class="cmd">N100 G01 Z</span><span class="val">-0.5</span> <span class="cmd">F</span><span class="val">500</span>            <span class="cmt">( Feed to depth 0.5mm )</span><br>
+        <span class="cmd">N110 G01 X</span><span class="val">110</span> <span class="cmd">F</span><span class="val">800</span>             <span class="cmt">( Face mill pass )</span><br>
+        <span class="cmd">N120 G00 Z</span><span class="val">50</span>                     <span class="cmt">( Rapid retract )</span><br>
+        <span class="cmd">N130 M05</span>                           <span class="cmt">( Spindle stop )</span><br>
+        <span class="cmd">N140 M09</span>                           <span class="cmt">( Coolant off )</span><br>
+        <span class="cmd">N150 G28 G91 Z0</span>                   <span class="cmt">( Z home )</span><br>
+        <span class="cmd">N160 M30</span>                           <span class="cmt">( End + reset )</span>
+      </div>
+    </section>
+
+    <!-- ── FEEDS & SPEEDS ── -->
+    <section class="content-section" id="feeds">
+      <div class="section-header">
+        <div class="section-badge" style="background:var(--cnc);color:#000">CNC</div>
+        <div class="section-title">Feeds &amp; Speeds</div>
+      </div>
+
+      <div class="formula-grid">
+        <div class="formula-card">
+          <div class="formula-label">Spindle Speed (RPM)</div>
+          <div class="formula-eq">N = (SFM × 3.82) / D</div>
+          <div class="formula-desc">N = RPM · SFM = Surface Feet/Min · D = cutter diameter (inches)</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-label">Metric Spindle Speed</div>
+          <div class="formula-eq">N = (1000 × Vc) / (π × D)</div>
+          <div class="formula-desc">N = RPM · Vc = cutting speed (m/min) · D = diameter (mm)</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-label">Feed Rate (in/min)</div>
+          <div class="formula-eq">F = N × IPT × Z</div>
+          <div class="formula-desc">N = RPM · IPT = inches per tooth (chip load) · Z = number of flutes</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-label">Material Removal Rate</div>
+          <div class="formula-eq">MRR = W × D × F</div>
+          <div class="formula-desc">W = width of cut · D = depth of cut · F = feed rate (all same units)</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-label">Chip Load per Tooth</div>
+          <div class="formula-eq">IPT = F / (N × Z)</div>
+          <div class="formula-desc">Rearrangement of feed rate formula to verify chip load</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-label">Horsepower Required</div>
+          <div class="formula-eq">HP = (MRR × Kp) / E</div>
+          <div class="formula-desc">Kp = specific cutting force (hp·min/in³) · E = spindle efficiency (0.8–0.9)</div>
+        </div>
+      </div>
+
+      <div class="sh" style="--section-color:#00d4ff"><span class="sh-dot" style="background:#00d4ff;box-shadow:0 0 10px #00d4ff"></span>Recommended Starting Speeds by Material</div>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Material</th><th>HSS SFM</th><th>Carbide SFM</th><th>IPT (0.5″ end mill)</th><th>Coolant</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="highlight">Aluminum 6061</td><td class="mono">200–500</td><td class="mono">600–1200</td><td class="mono">0.002–0.005″</td><td>Air/flood</td></tr>
+            <tr><td class="highlight">Mild Steel (A36)</td><td class="mono">50–100</td><td class="mono">200–400</td><td class="mono">0.001–0.003″</td><td>Flood</td></tr>
+            <tr><td class="highlight">Stainless 304</td><td class="mono">30–60</td><td class="mono">100–200</td><td class="mono">0.0008–0.002″</td><td>Flood (sulfur-free)</td></tr>
+            <tr><td class="highlight">Titanium Ti-6Al-4V</td><td class="mono">20–40</td><td class="mono">60–120</td><td class="mono">0.0005–0.0015″</td><td>High-pressure flood</td></tr>
+            <tr><td class="highlight">Cast Iron</td><td class="mono">50–90</td><td class="mono">200–400</td><td class="mono">0.001–0.003″</td><td>Dry or air</td></tr>
+            <tr><td class="highlight">Brass</td><td class="mono">150–300</td><td class="mono">500–800</td><td class="mono">0.002–0.005″</td><td>Dry or mist</td></tr>
+            <tr><td class="highlight">HDPE / Nylon</td><td class="mono">300–600</td><td class="mono">800–1500</td><td class="mono">0.004–0.010″</td><td>Air / dry</td></tr>
+            <tr><td class="highlight">Carbon Fiber (CFRP)</td><td class="mono">—</td><td class="mono">300–600</td><td class="mono">0.001–0.003″</td><td>Dry (compressed air)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── CNC CALCULATOR ── -->
+    <section class="content-section" id="cnc-calc">
+      <div class="section-header">
+        <div class="section-badge" style="background:var(--cnc);color:#000">Calc</div>
+        <div class="section-title">CNC Calculator</div>
+      </div>
+
+      <!-- Spindle Speed -->
+      <div class="calc-block">
+        <div class="calc-title">Spindle Speed &amp; Feed Rate <span>RPM / IPM</span></div>
+        <div class="calc-fields">
+          <div class="field-group">
+            <div class="field-label">Surface Speed (SFM)</div>
+            <input class="field-input" id="sfm" type="number" placeholder="e.g. 300" value="300">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Cutter Diameter (in)</div>
+            <input class="field-input" id="dia" type="number" placeholder="e.g. 0.5" value="0.5">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Chip Load / Tooth (in)</div>
+            <input class="field-input" id="ipt" type="number" placeholder="e.g. 0.002" value="0.002">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Number of Flutes</div>
+            <input class="field-input" id="flutes" type="number" placeholder="e.g. 4" value="4">
+          </div>
+        </div>
+        <button class="calc-btn" onclick="calcSpindle()">Calculate</button>
+        <div class="calc-result" id="spindleResult">
+          <div class="result-label">Results</div>
+          <div id="spindleRPM" class="result-value">— <span class="result-unit">RPM</span></div>
+          <div id="spindleFeed" style="font-family:var(--ff-mono);font-size:14px;color:var(--text2);margin-top:6px;"></div>
+          <div class="result-sub" id="spindleSub"></div>
+        </div>
+      </div>
+
+      <!-- Bend Allowance Calculator -->
+      <div class="calc-block">
+        <div class="calc-title">Bend Allowance <span>Sheet Metal</span></div>
+        <div class="calc-fields">
+          <div class="field-group">
+            <div class="field-label">Material Thickness (mm)</div>
+            <input class="field-input" id="bThick" type="number" placeholder="e.g. 3" value="3">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Inside Bend Radius (mm)</div>
+            <input class="field-input" id="bRadius" type="number" placeholder="e.g. 3" value="3">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Bend Angle (°)</div>
+            <input class="field-input" id="bAngle" type="number" placeholder="e.g. 90" value="90">
+          </div>
+          <div class="field-group">
+            <div class="field-label">K-Factor</div>
+            <input class="field-input" id="kFactor" type="number" placeholder="e.g. 0.44" value="0.44">
+          </div>
+        </div>
+        <button class="calc-btn" onclick="calcBend()">Calculate</button>
+        <div class="calc-result" id="bendResult">
+          <div class="result-label">Bend Allowance</div>
+          <div id="bendBA" class="result-value">— <span class="result-unit">mm</span></div>
+          <div class="result-sub" id="bendSub"></div>
+        </div>
+      </div>
+
+      <!-- Thread Tap Drill -->
+      <div class="calc-block">
+        <div class="calc-title">Tap Drill Size <span>75% Thread</span></div>
+        <div class="calc-fields">
+          <div class="field-group">
+            <div class="field-label">Thread Standard</div>
+            <select class="field-select" id="threadStd" onchange="updateThreadList()">
+              <option>Metric (M)</option>
+              <option>UNC</option>
+              <option>UNF</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">Thread Size</div>
+            <select class="field-select" id="threadSize">
+              <option>M3 × 0.5</option>
+              <option>M4 × 0.7</option>
+              <option>M5 × 0.8</option>
+              <option>M6 × 1.0</option>
+              <option>M8 × 1.25</option>
+              <option>M10 × 1.5</option>
+              <option>M12 × 1.75</option>
+              <option>M16 × 2.0</option>
+              <option>M20 × 2.5</option>
+              <option>M24 × 3.0</option>
+            </select>
+          </div>
+        </div>
+        <button class="calc-btn" onclick="calcTapDrill()">Get Tap Drill</button>
+        <div class="calc-result" id="tapResult">
+          <div class="result-label">Tap Drill Size</div>
+          <div id="tapDrill" class="result-value">—</div>
+          <div class="result-sub" id="tapSub"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TOLERANCES ── -->
+    <section class="content-section" id="tolerances">
+      <div class="section-header">
+        <div class="section-badge" style="background:var(--mech);color:#000">Mech</div>
+        <div class="section-title">Fits &amp; Tolerances</div>
+      </div>
+
+      <p class="text-block">
+        ISO 286 defines the system of limits and fits for cylindrical features. The fit type is specified by a fundamental deviation letter and an IT grade number. <strong>Hole-basis system</strong> is standard; the hole is held constant and the shaft is adjusted.
+      </p>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Fit Type</th><th>ISO Symbol (Ø50)</th><th>Description</th><th>Typical Use</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="highlight">Loose Running</td><td class="mono">H11/c11</td><td>Large clearance; free relative motion</td><td>Agricultural, rough machinery</td></tr>
+            <tr><td class="highlight">Free Running</td><td class="mono">H9/d9</td><td>Good clearance; no precision required</td><td>Shafts in plain bearings, large temp range</td></tr>
+            <tr><td class="highlight">Close Running</td><td class="mono">H8/f7</td><td>Moderate clearance; lubrication needed</td><td>Journal bearings, gear shafts</td></tr>
+            <tr><td class="highlight">Sliding</td><td class="mono">H7/g6</td><td>Small clearance; accurate location + sliding</td><td>Precision slides, valve spindles</td></tr>
+            <tr><td class="highlight">Locational Clearance</td><td class="mono">H7/h6</td><td>Smallest clearance; accurate stationary location</td><td>Spigots, flanges, dowel pins</td></tr>
+            <tr><td class="highlight">Locational Transition</td><td class="mono">H7/k6</td><td>May be clearance or interference</td><td>Hubs on shafts (easily assembled)</td></tr>
+            <tr><td class="highlight">Locational Interference</td><td class="mono">H7/p6</td><td>Light interference; rigidity &amp; alignment</td><td>Thin-wall bushings, light press fits</td></tr>
+            <tr><td class="highlight">Medium Drive</td><td class="mono">H7/s6</td><td>Medium interference; press-fit assembly</td><td>Standard press fits; semi-permanent</td></tr>
+            <tr><td class="highlight">Force / Shrink</td><td class="mono">H7/u6</td><td>High interference; heavy press or heat fit</td><td>High-torque drive fits; permanent</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-block">
+        <strong>IT Grades:</strong> IT01–IT18 define tolerance magnitude. IT6 is precision; IT11 is rough. For reference, a Ø50mm IT7 tolerance = ±0.025mm (50µm).
+      </div>
+    </section>
+
+    <!-- ── THREADS ── -->
+    <section class="content-section" id="threads">
+      <div class="section-header">
+        <div class="section-badge" style="background:var(--mech);color:#000">Mech</div>
+        <div class="section-title">Thread Standards</div>
+      </div>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Thread</th><th>Pitch (mm)</th><th>Tap Drill (mm)</th><th>Clearance Drill</th><th>TPI (if UNC/UNF)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono highlight">M3</td><td class="mono">0.5</td><td class="mono">2.5</td><td class="mono">3.2</td><td>—</td></tr>
+            <tr><td class="mono highlight">M4</td><td class="mono">0.7</td><td class="mono">3.3</td><td class="mono">4.3</td><td>—</td></tr>
+            <tr><td class="mono highlight">M5</td><td class="mono">0.8</td><td class="mono">4.2</td><td class="mono">5.3</td><td>—</td></tr>
+            <tr><td class="mono highlight">M6</td><td class="mono">1.0</td><td class="mono">5.0</td><td class="mono">6.4</td><td>—</td></tr>
+            <tr><td class="mono highlight">M8</td><td class="mono">1.25</td><td class="mono">6.75</td><td class="mono">8.5</td><td>—</td></tr>
+            <tr><td class="mono highlight">M10</td><td class="mono">1.5</td><td class="mono">8.5</td><td class="mono">10.5</td><td>—</td></tr>
+            <tr><td class="mono highlight">M12</td><td class="mono">1.75</td><td class="mono">10.2</td><td class="mono">13.0</td><td>—</td></tr>
+            <tr><td class="mono highlight">M16</td><td class="mono">2.0</td><td class="mono">14.0</td><td class="mono">17.0</td><td>—</td></tr>
+            <tr><td class="mono highlight">M20</td><td class="mono">2.5</td><td class="mono">17.5</td><td class="mono">21.0</td><td>—</td></tr>
+            <tr><td class="mono highlight">1/4″-20 UNC</td><td class="mono">1.27</td><td class="mono">5.1 (#7)</td><td class="mono">6.8 (17/64)</td><td>20</td></tr>
+            <tr><td class="mono highlight">5/16″-18 UNC</td><td class="mono">1.41</td><td class="mono">6.9 (F)</td><td class="mono">8.3</td><td>18</td></tr>
+            <tr><td class="mono highlight">3/8″-16 UNC</td><td class="mono">1.59</td><td class="mono">8.5 (5/16)</td><td class="mono">9.9</td><td>16</td></tr>
+            <tr><td class="mono highlight">1/2″-13 UNC</td><td class="mono">1.95</td><td class="mono">11.1 (27/64)</td><td class="mono">13.5</td><td>13</td></tr>
+            <tr><td class="mono highlight">1/4″-28 UNF</td><td class="mono">0.907</td><td class="mono">5.4 (#3)</td><td class="mono">6.8</td><td>28</td></tr>
+            <tr><td class="mono highlight">3/8″-24 UNF</td><td class="mono">1.058</td><td class="mono">8.7 (Q)</td><td class="mono">9.9</td><td>24</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── MATERIALS ── -->
+    <section class="content-section" id="materials">
+      <div class="section-header">
+        <div class="section-badge" style="background:var(--mech);color:#000">Mech</div>
+        <div class="section-title">Material Properties</div>
+      </div>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Material</th><th>Tensile UTS (MPa)</th><th>Yield (MPa)</th><th>Hardness</th><th>Density (g/cm³)</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="highlight">Steel A36 / S275</td><td class="mono">400–550</td><td class="mono">250</td><td>~130 HB</td><td class="mono">7.85</td><td>Structural mild steel</td></tr>
+            <tr><td class="highlight">Steel 4140 (Ann.)</td><td class="mono">655</td><td class="mono">415</td><td>~197 HB</td><td class="mono">7.85</td><td>Chromoly, heat-treatable</td></tr>
+            <tr><td class="highlight">Steel 4140 (HT)</td><td class="mono">1020</td><td class="mono">655</td><td>~302 HB</td><td class="mono">7.85</td><td>Hardened &amp; tempered</td></tr>
+            <tr><td class="highlight">Stainless 304</td><td class="mono">515</td><td class="mono">205</td><td>~201 HB</td><td class="mono">7.93</td><td>Austenitic, non-magnetic</td></tr>
+            <tr><td class="highlight">Stainless 316</td><td class="mono">515</td><td class="mono">205</td><td>~217 HB</td><td class="mono">7.99</td><td>Molybdenum; marine grade</td></tr>
+            <tr><td class="highlight">Aluminum 6061-T6</td><td class="mono">310</td><td class="mono">276</td><td>~95 HRB</td><td class="mono">2.70</td><td>Most common structural Al</td></tr>
+            <tr><td class="highlight">Aluminum 7075-T6</td><td class="mono">572</td><td class="mono">503</td><td>~150 HB</td><td class="mono">2.81</td><td>Aerospace; high-strength</td></tr>
+            <tr><td class="highlight">Copper C110</td><td class="mono">220</td><td class="mono">70</td><td>~40 HRB</td><td class="mono">8.94</td><td>Electrolytic tough pitch</td></tr>
+            <tr><td class="highlight">Brass C360</td><td class="mono">385</td><td class="mono">310</td><td>~78 HRB</td><td class="mono">8.50</td><td>Free machining brass</td></tr>
+            <tr><td class="highlight">Ti-6Al-4V</td><td class="mono">950</td><td class="mono">880</td><td>~36 HRC</td><td class="mono">4.43</td><td>Aerospace titanium alloy</td></tr>
+            <tr><td class="highlight">Cast Iron (Grey)</td><td class="mono">100–200</td><td class="mono">—</td><td>~200 HB</td><td class="mono">7.20</td><td>Brittle; excellent compression</td></tr>
+            <tr><td class="highlight">HDPE</td><td class="mono">22–31</td><td class="mono">18–25</td><td>~65 Shore D</td><td class="mono">0.95</td><td>Food-safe plastic</td></tr>
+            <tr><td class="highlight">Delrin (Acetal)</td><td class="mono">62–76</td><td class="mono">—</td><td>~80 Shore D</td><td class="mono">1.42</td><td>Precision plastic; low friction</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── PLASMA ── -->
+    <section class="content-section" id="plasma">
+      <div class="section-header">
+        <div class="section-badge" style="background:var(--plasma);color:#fff">Plasma</div>
+        <div class="section-title">Plasma Cutting</div>
+      </div>
+
+      <p class="text-block">
+        Plasma cutting uses an ionized gas jet (plasma arc) to melt and expel metal. <strong>Air plasma</strong> works on mild steel, stainless, and aluminum. <strong>Nitrogen</strong> and <strong>argon-hydrogen</strong> mixes improve cut quality on stainless and thicker materials. Standoff height (torch-to-work distance) critically affects cut quality — typically <strong>1.5–4mm</strong> for most systems.
+      </p>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Material</th><th>Thickness</th><th>Current (A)</th><th>Speed (mm/min)</th><th>Gas</th><th>Kerf (mm)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="highlight">Mild Steel</td><td class="mono">3mm</td><td class="mono">40A</td><td class="mono">3500–4500</td><td>Air</td><td class="mono">1.5–2.0</td></tr>
+            <tr><td class="highlight">Mild Steel</td><td class="mono">6mm</td><td class="mono">50–60A</td><td class="mono">1500–2500</td><td>Air</td><td class="mono">1.8–2.5</td></tr>
+            <tr><td class="highlight">Mild Steel</td><td class="mono">12mm</td><td class="mono">80–100A</td><td class="mono">700–1200</td><td>Air</td><td class="mono">2.5–3.5</td></tr>
+            <tr><td class="highlight">Mild Steel</td><td class="mono">25mm</td><td class="mono">100–130A</td><td class="mono">200–500</td><td>Air / O₂</td><td class="mono">3.0–4.5</td></tr>
+            <tr><td class="highlight">Stainless 304</td><td class="mono">3mm</td><td class="mono">45A</td><td class="mono">3000–4000</td><td>N₂</td><td class="mono">1.8–2.2</td></tr>
+            <tr><td class="highlight">Stainless 304</td><td class="mono">10mm</td><td class="mono">80A</td><td class="mono">900–1400</td><td>N₂</td><td class="mono">2.5–3.0</td></tr>
+            <tr><td class="highlight">Aluminum</td><td class="mono">3mm</td><td class="mono">40A</td><td class="mono">4000–5500</td><td>Air / N₂</td><td class="mono">1.5–2.0</td></tr>
+            <tr><td class="highlight">Aluminum</td><td class="mono">10mm</td><td class="mono">70A</td><td class="mono">1500–2500</td><td>Air / N₂</td><td class="mono">2.5–3.5</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-block">
+        <strong>Pierce Point:</strong> For CNC plasma, lead-in lines (typically 3–5mm) prevent pierce damage at the start of a cut. Increase pierce height to 150% of cut height, then ramp down.
+      </div>
+    </section>
+
+    <!-- ── LASER ── -->
+    <section class="content-section" id="laser">
+      <div class="section-header">
+        <div class="section-badge" style="background:var(--laser);color:#000">Laser</div>
+        <div class="section-title">Laser Cutting</div>
+      </div>
+
+      <p class="text-block">
+        CO₂ lasers (10.6µm) excel at non-metals (acrylic, wood, fabric). <strong>Fiber lasers</strong> (1.06µm) are superior for metals. <strong>Diode lasers</strong> are low-cost entry-level for wood/leather. Cut quality is governed by power (W), speed (mm/min), focus point, and assist gas (O₂ for mild steel, N₂ for stainless/aluminum clean edge).
+      </p>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Material</th><th>Thickness</th><th>Power (W)</th><th>Speed (mm/min)</th><th>Assist Gas</th><th>Kerf (mm)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="highlight">Acrylic (CO₂)</td><td class="mono">3mm</td><td class="mono">40–60W</td><td class="mono">8000–15000</td><td>Air</td><td class="mono">0.1–0.2</td></tr>
+            <tr><td class="highlight">Acrylic (CO₂)</td><td class="mono">10mm</td><td class="mono">100–150W</td><td class="mono">2000–4000</td><td>Air</td><td class="mono">0.2–0.3</td></tr>
+            <tr><td class="highlight">MDF (CO₂)</td><td class="mono">6mm</td><td class="mono">60–80W</td><td class="mono">5000–10000</td><td>Air</td><td class="mono">0.2–0.4</td></tr>
+            <tr><td class="highlight">Mild Steel (Fiber)</td><td class="mono">1mm</td><td class="mono">500–1000W</td><td class="mono">10000–25000</td><td>O₂</td><td class="mono">0.1–0.15</td></tr>
+            <tr><td class="highlight">Mild Steel (Fiber)</td><td class="mono">3mm</td><td class="mono">1000–2000W</td><td class="mono">5000–12000</td><td>O₂</td><td class="mono">0.15–0.25</td></tr>
+            <tr><td class="highlight">Mild Steel (Fiber)</td><td class="mono">6mm</td><td class="mono">2000–3000W</td><td class="mono">2000–5000</td><td>O₂ / N₂</td><td class="mono">0.25–0.4</td></tr>
+            <tr><td class="highlight">Stainless (Fiber)</td><td class="mono">2mm</td><td class="mono">1000–2000W</td><td class="mono">4000–9000</td><td>N₂</td><td class="mono">0.12–0.2</td></tr>
+            <tr><td class="highlight">Aluminum (Fiber)</td><td class="mono">2mm</td><td class="mono">1500–3000W</td><td class="mono">5000–10000</td><td>N₂</td><td class="mono">0.15–0.25</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── WELDING ── -->
+    <section class="content-section" id="welding">
+      <div class="section-header">
+        <div class="section-badge" style="background:var(--weld);color:#fff">Weld</div>
+        <div class="section-title">Welding Processes</div>
+      </div>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Process</th><th>Code</th><th>Positions</th><th>Best For</th><th>Filler / Electrode</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="highlight">MIG / GMAW</td><td class="mono">135/136</td><td>All</td><td>Mild steel, fab shops, high production</td><td>ER70S-6 wire (mild), ER308L (SS)</td></tr>
+            <tr><td class="highlight">TIG / GTAW</td><td class="mono">141</td><td>All</td><td>Precision, thin gauge, SS, Al, Ti</td><td>ER70S-2 (steel), ER4043/5356 (Al)</td></tr>
+            <tr><td class="highlight">Stick / SMAW</td><td class="mono">111</td><td>All</td><td>Site work, dirty/rusty metal, thick plate</td><td>E6010, E6011, E7018</td></tr>
+            <tr><td class="highlight">Flux-Core / FCAW</td><td class="mono">136</td><td>All (gas); 1F–2F (self)</td><td>Structural, outdoor, thick gauge</td><td>E71T-1 (gas), E71T-11 (self)</td></tr>
+            <tr><td class="highlight">SAW</td><td class="mono">121</td><td>1G, 1F</td><td>Heavy plate, automated, high deposition</td><td>Wire + flux powder</td></tr>
+            <tr><td class="highlight">Plasma Arc / PAW</td><td class="mono">15</td><td>All</td><td>Precision thin sheet, keyhole mode</td><td>Same as TIG</td></tr>
+            <tr><td class="highlight">Oxy-Fuel / OAW</td><td class="mono">311</td><td>All</td><td>Thin sheet, brazing, fieldwork</td><td>OA rods, bronze brazing</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sh" id="weld-settings" style="--section-color:#ff4422">
+        <span class="sh-dot" style="background:#ff4422;box-shadow:0 0 10px #ff4422"></span>
+        MIG Welding Settings (Mild Steel, CO₂/Ar Mix)
+      </div>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Material Thickness</th><th>Wire Dia (mm)</th><th>Voltage (V)</th><th>Wire Speed (m/min)</th><th>Gas Flow (L/min)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="highlight">0.8mm</td><td class="mono">0.6</td><td class="mono">14–16</td><td class="mono">3–4</td><td class="mono">8–10</td></tr>
+            <tr><td class="highlight">1.5mm</td><td class="mono">0.8</td><td class="mono">16–18</td><td class="mono">4–6</td><td class="mono">10–12</td></tr>
+            <tr><td class="highlight">3mm</td><td class="mono">0.8–1.0</td><td class="mono">18–22</td><td class="mono">6–9</td><td class="mono">12–14</td></tr>
+            <tr><td class="highlight">6mm</td><td class="mono">1.0–1.2</td><td class="mono">22–26</td><td class="mono">8–12</td><td class="mono">14–16</td></tr>
+            <tr><td class="highlight">10mm</td><td class="mono">1.2</td><td class="mono">26–30</td><td class="mono">12–16</td><td class="mono">14–18</td></tr>
+            <tr><td class="highlight">20mm+</td><td class="mono">1.2–1.6</td><td class="mono">28–34</td><td class="mono">14–20</td><td class="mono">16–20</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-block">
+        <strong>Preheat:</strong> Steel &gt;25mm thick, high-carbon, or alloy steels require preheat. AWS D1.1 mandates preheat of 65°C (150°F) for A514 and similar. Hydrogen-induced cold cracking (HICC) is the primary failure mode in under-preheated thick sections.
+      </div>
+    </section>
+
+    <!-- ── SHEET METAL FAB ── -->
+    <section class="content-section" id="fab">
+      <div class="section-header">
+        <div class="section-badge" style="background:var(--fab);color:#000">Fab</div>
+        <div class="section-title">Sheet Metal Fabrication</div>
+      </div>
+
+      <div class="formula-grid">
+        <div class="formula-card">
+          <div class="formula-label">Bend Allowance (BA)</div>
+          <div class="formula-eq">BA = (π/180) × A × (r + K×t)</div>
+          <div class="formula-desc">A = bend angle · r = inside radius · K = K-factor · t = thickness</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-label">Bend Deduction (BD)</div>
+          <div class="formula-eq">BD = 2×OSSB − BA</div>
+          <div class="formula-desc">OSSB = outside setback = tan(A/2) × (r + t)</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-label">Flat Pattern Length</div>
+          <div class="formula-eq">L = L₁ + L₂ + BA</div>
+          <div class="formula-desc">Sum of flat legs plus bend allowance for each bend</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-label">Minimum Bend Radius</div>
+          <div class="formula-eq">r_min ≈ 0.5–1.0 × t</div>
+          <div class="formula-desc">Depends on material; aluminum typically ≥1t, mild steel ≥0.5t</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-label">Springback Angle</div>
+          <div class="formula-eq">θ_SB = θ_bent − θ_final</div>
+          <div class="formula-desc">Overbend by springback amount; typically 2–5° for mild steel</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-label">Press Brake Tonnage</div>
+          <div class="formula-eq">T = (575 × t² × L) / W</div>
+          <div class="formula-desc">t = thickness (in) · L = length (in) · W = V-die width (in)</div>
+        </div>
+      </div>
+
+      <div class="sh" style="--section-color:#ff8800"><span class="sh-dot" style="background:#ff8800;box-shadow:0 0 10px #ff8800"></span>K-Factor Values by Material</div>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Material</th><th>Soft / Annealed</th><th>Semi-Hard</th><th>Hard</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="highlight">Mild Steel</td><td class="mono">0.35–0.40</td><td class="mono">0.41–0.44</td><td class="mono">0.45–0.50</td></tr>
+            <tr><td class="highlight">Stainless Steel</td><td class="mono">0.38–0.42</td><td class="mono">0.43–0.47</td><td class="mono">0.48–0.50</td></tr>
+            <tr><td class="highlight">Aluminum</td><td class="mono">0.33–0.38</td><td class="mono">0.39–0.43</td><td class="mono">0.44–0.50</td></tr>
+            <tr><td class="highlight">Copper</td><td class="mono">0.35–0.40</td><td class="mono">—</td><td class="mono">0.41–0.47</td></tr>
+            <tr><td class="highlight">Brass</td><td class="mono">0.35–0.42</td><td class="mono">—</td><td class="mono">0.43–0.50</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── RESOURCES ── -->
+    <section class="content-section" id="resources">
+      <div class="section-header">
+        <div class="section-badge" style="background:var(--const);color:#fff">Links</div>
+        <div class="section-title">Official Resources</div>
+      </div>
+
+      <div class="resources-grid">
+        <a class="resource-card" href="https://www.asme.org" target="_blank" rel="noopener">
+          <div class="resource-org">ASME</div>
+          <div class="resource-name">American Society of Mechanical Engineers</div>
+          <div class="resource-desc">Standards for mechanical design, GD&amp;T (Y14.5), boiler &amp; pressure vessel codes.</div>
+          <div class="resource-url">↗ asme.org</div>
+        </a>
+        <a class="resource-card" href="https://www.aws.org" target="_blank" rel="noopener">
+          <div class="resource-org">AWS</div>
+          <div class="resource-name">American Welding Society</div>
+          <div class="resource-desc">D1.1 Structural Welding Code (Steel), filler metal specifications, CWI certification.</div>
+          <div class="resource-url">↗ aws.org</div>
+        </a>
+        <a class="resource-card" href="https://www.iso.org" target="_blank" rel="noopener">
+          <div class="resource-org">ISO</div>
+          <div class="resource-name">International Organization for Standardization</div>
+          <div class="resource-desc">ISO 286 fits/tolerances, ISO 6983 G-code, ISO 2553 weld symbols.</div>
+          <div class="resource-url">↗ iso.org</div>
+        </a>
+        <a class="resource-card" href="https://www.nist.gov/mml" target="_blank" rel="noopener">
+          <div class="resource-org">NIST</div>
+          <div class="resource-name">Materials Measurement Laboratory</div>
+          <div class="resource-desc">Material properties database, metrology standards, NIST handbooks for machining.</div>
+          <div class="resource-url">↗ nist.gov/mml</div>
+        </a>
+        <a class="resource-card" href="https://www.smacna.org" target="_blank" rel="noopener">
+          <div class="resource-org">SMACNA</div>
+          <div class="resource-name">Sheet Metal & Air Conditioning Contractors</div>
+          <div class="resource-desc">HVAC duct construction standards, sheet metal fabrication guidelines.</div>
+          <div class="resource-url">↗ smacna.org</div>
+        </a>
+        <a class="resource-card" href="https://www.machinery.org" target="_blank" rel="noopener">
+          <div class="resource-org">Machinery's Handbook</div>
+          <div class="resource-name">Industrial Press</div>
+          <div class="resource-desc">The machinist's bible — threads, fits, speeds, materials, gears, and more. 31st edition.</div>
+          <div class="resource-url">↗ industrialpress.com</div>
+        </a>
+        <a class="resource-card" href="https://www.engineersedge.com" target="_blank" rel="noopener">
+          <div class="resource-org">Engineers Edge</div>
+          <div class="resource-name">Engineering Reference & Calculators</div>
+          <div class="resource-desc">Online reference for tolerances, threads, material properties, beam deflection, and more.</div>
+          <div class="resource-url">↗ engineersedge.com</div>
+        </a>
+        <a class="resource-card" href="https://www.matweb.com" target="_blank" rel="noopener">
+          <div class="resource-org">MatWeb</div>
+          <div class="resource-name">Material Property Data</div>
+          <div class="resource-desc">Comprehensive database of material datasheets — metals, polymers, composites, ceramics.</div>
+          <div class="resource-url">↗ matweb.com</div>
+        </a>
+        <a class="resource-card" href="https://linuxcnc.org/docs/html/" target="_blank" rel="noopener">
+          <div class="resource-org">LinuxCNC</div>
+          <div class="resource-name">LinuxCNC Documentation</div>
+          <div class="resource-desc">Comprehensive open-source CNC controller documentation. G-code reference and HAL config.</div>
+          <div class="resource-url">↗ linuxcnc.org/docs</div>
+        </a>
+        <a class="resource-card" href="https://www.haascnc.com/service/service-content/operator-manuals.html" target="_blank" rel="noopener">
+          <div class="resource-org">Haas CNC</div>
+          <div class="resource-name">Haas Operator Manuals</div>
+          <div class="resource-desc">Programming and operator manuals for Haas mills and lathes. Free download.</div>
+          <div class="resource-url">↗ haascnc.com</div>
+        </a>
+        <a class="resource-card" href="https://www.millerwelds.com/resources" target="_blank" rel="noopener">
+          <div class="resource-org">Miller Welds</div>
+          <div class="resource-name">Miller Welding Resources</div>
+          <div class="resource-desc">Welding calculators, procedure guides, certification prep, and how-to videos.</div>
+          <div class="resource-url">↗ millerwelds.com/resources</div>
+        </a>
+        <a class="resource-card" href="https://www.hypertherm.com/en-US/learn/resource-library/" target="_blank" rel="noopener">
+          <div class="resource-org">Hypertherm</div>
+          <div class="resource-name">Plasma Cutting Resource Library</div>
+          <div class="resource-desc">Consumable selection, cut charts, fine feature cutting guides for plasma systems.</div>
+          <div class="resource-url">↗ hypertherm.com</div>
+        </a>
+      </div>
+
+      <div class="sh" id="standards" style="--section-color:#4a8fd4; margin-top: 40px;">
+        <span class="sh-dot" style="background:#4a8fd4;box-shadow:0 0 10px #4a8fd4"></span>
+        Key Standards Reference
+      </div>
+
+      <div class="ref-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr><th>Standard</th><th>Body</th><th>Covers</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono highlight">ISO 286</td><td>ISO</td><td>Limits &amp; fits for cylindrical features</td></tr>
+            <tr><td class="mono highlight">ISO 1101</td><td>ISO</td><td>GD&amp;T — geometrical tolerancing</td></tr>
+            <tr><td class="mono highlight">ASME Y14.5</td><td>ASME</td><td>GD&amp;T (US standard, dimensioning and tolerancing)</td></tr>
+            <tr><td class="mono highlight">ISO 6983</td><td>ISO</td><td>G-code / NC programming language</td></tr>
+            <tr><td class="mono highlight">AWS D1.1</td><td>AWS</td><td>Structural welding code — steel</td></tr>
+            <tr><td class="mono highlight">AWS D1.2</td><td>AWS</td><td>Structural welding code — aluminum</td></tr>
+            <tr><td class="mono highlight">ISO 2553</td><td>ISO</td><td>Weld symbols on drawings</td></tr>
+            <tr><td class="mono highlight">ASME B1.1</td><td>ASME</td><td>Unified inch screw threads (UN/UNR)</td></tr>
+            <tr><td class="mono highlight">ISO 68-1</td><td>ISO</td><td>Metric screw thread general plan</td></tr>
+            <tr><td class="mono highlight">ASTM A36</td><td>ASTM</td><td>Structural carbon steel specification</td></tr>
+            <tr><td class="mono highlight">EN 10025</td><td>CEN</td><td>European structural steel products</td></tr>
+            <tr><td class="mono highlight">ISO 9013</td><td>ISO</td><td>Thermal cutting — classification and quality</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer class="kfooter">
+  <div class="kfooter-brand">KODEX<sup>™</sup> · KERFsuite</div>
+  <div class="kfooter-copy">Part of KERFsuite™ · Rev A Draft · AGPL-3.0 · withshalom</div>
+</footer>
+
+<script>
+// ── SEARCH DATA ──────────────────────────────────────────────────────────────
+const searchData = [
+  { cat:'G-Code', title:'G00 — Rapid Positioning', sub:'Modal group 0', id:'gcode' },
+  { cat:'G-Code', title:'G01 — Linear Interpolation', sub:'Modal group 0 · requires F word', id:'gcode' },
+  { cat:'G-Code', title:'G02/G03 — Circular Interpolation', sub:'CW and CCW arc motion', id:'gcode' },
+  { cat:'G-Code', title:'G81–G83 — Drill Cycles', sub:'Canned cycle for drilling', id:'gcode' },
+  { cat:'G-Code', title:'G54–G59 — Work Offsets', sub:'Work coordinate systems', id:'gcode' },
+  { cat:'G-Code', title:'G96/G97 — Surface/Spindle Speed', sub:'CSS and constant RPM modes', id:'gcode' },
+  { cat:'M-Code', title:'M03 — Spindle CW Start', sub:'M03 S1500', id:'mcode' },
+  { cat:'M-Code', title:'M06 — Tool Change', sub:'M06 T02', id:'mcode' },
+  { cat:'M-Code', title:'M08/M09 — Coolant On/Off', sub:'Flood coolant control', id:'mcode' },
+  { cat:'M-Code', title:'M30 — End of Program', sub:'Preferred over M02', id:'mcode' },
+  { cat:'M-Code', title:'M98/M99 — Subprogram Call', sub:'Subroutine control', id:'mcode' },
+  { cat:'Feeds', title:'Spindle Speed Formula', sub:'N = (SFM × 3.82) / D', id:'feeds' },
+  { cat:'Feeds', title:'Feed Rate Formula', sub:'F = N × IPT × Z', id:'feeds' },
+  { cat:'Feeds', title:'Aluminum 6061 Speeds', sub:'Carbide: 600–1200 SFM', id:'feeds' },
+  { cat:'Feeds', title:'Mild Steel Speeds', sub:'Carbide: 200–400 SFM', id:'feeds' },
+  { cat:'Feeds', title:'Stainless 304 Speeds', sub:'Carbide: 100–200 SFM', id:'feeds' },
+  { cat:'Calc', title:'CNC Spindle/Feed Calculator', sub:'Enter SFM, diameter, chip load', id:'cnc-calc' },
+  { cat:'Calc', title:'Bend Allowance Calculator', sub:'Sheet metal flat pattern', id:'cnc-calc' },
+  { cat:'Calc', title:'Tap Drill Calculator', sub:'Metric and UNC/UNF', id:'cnc-calc' },
+  { cat:'Mech', title:'ISO 286 Fits & Tolerances', sub:'H7/h6, H7/p6, etc.', id:'tolerances' },
+  { cat:'Mech', title:'IT Grade Tolerances', sub:'IT6 = precision, IT11 = rough', id:'tolerances' },
+  { cat:'Mech', title:'Metric Thread Table', sub:'M3–M24 tap drills', id:'threads' },
+  { cat:'Mech', title:'UNC/UNF Thread Table', sub:'1/4-20, 3/8-16, etc.', id:'threads' },
+  { cat:'Mech', title:'Steel A36 Properties', sub:'400–550 MPa UTS, 250 MPa yield', id:'materials' },
+  { cat:'Mech', title:'Aluminum 6061-T6 Properties', sub:'310 MPa UTS, 2.70 g/cm³', id:'materials' },
+  { cat:'Mech', title:'Stainless 304 Properties', sub:'515 MPa UTS, austenitic', id:'materials' },
+  { cat:'Plasma', title:'Plasma: Mild Steel 6mm', sub:'50–60A, 1500–2500 mm/min', id:'plasma' },
+  { cat:'Plasma', title:'Plasma: Stainless with N₂', sub:'Nitrogen for clean cut edge', id:'plasma' },
+  { cat:'Plasma', title:'Pierce Point Lead-In', sub:'3–5mm lead-in for CNC', id:'plasma' },
+  { cat:'Laser', title:'Laser: Acrylic CO₂ Settings', sub:'40–60W, 8000–15000 mm/min', id:'laser' },
+  { cat:'Laser', title:'Laser: Fiber Mild Steel', sub:'O₂ assist, 0.15–0.25mm kerf', id:'laser' },
+  { cat:'Laser', title:'Laser: Stainless N₂ Assist', sub:'Clean edge without oxidation', id:'laser' },
+  { cat:'Weld', title:'MIG / GMAW Process', sub:'ER70S-6, all positions', id:'welding' },
+  { cat:'Weld', title:'TIG / GTAW Process', sub:'Precision, thin gauge, stainless', id:'welding' },
+  { cat:'Weld', title:'MIG Settings by Thickness', sub:'Voltage, wire speed, gas flow', id:'weld-settings' },
+  { cat:'Weld', title:'Preheat Requirements', sub:'AWS D1.1, HICC prevention', id:'welding' },
+  { cat:'Fab', title:'Bend Allowance Formula', sub:'BA = (π/180) × A × (r + K×t)', id:'fab' },
+  { cat:'Fab', title:'K-Factor by Material', sub:'Mild steel, aluminum, stainless', id:'fab' },
+  { cat:'Fab', title:'Press Brake Tonnage', sub:'T = (575 × t² × L) / W', id:'fab' },
+  { cat:'Links', title:'ASME — Mechanical Standards', sub:'Y14.5 GD&T, pressure vessel', id:'resources' },
+  { cat:'Links', title:'AWS — Welding Standards', sub:'D1.1 structural, filler metals', id:'resources' },
+  { cat:'Links', title:'MatWeb — Material Data', sub:'Properties database', id:'resources' },
+  { cat:'Links', title:'Machinery\'s Handbook', sub:'31st edition reference', id:'resources' },
+  { cat:'Links', title:'ISO 286 Fits Standard', sub:'Limits and fits', id:'standards' },
+  { cat:'Links', title:'ASME Y14.5 GD&T', sub:'Dimensioning and tolerancing', id:'standards' },
+];
+
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (q.length < 2) { searchResults.classList.remove('open'); return; }
+  const hits = searchData.filter(d =>
+    d.title.toLowerCase().includes(q) ||
+    d.sub.toLowerCase().includes(q) ||
+    d.cat.toLowerCase().includes(q)
+  ).slice(0, 8);
+  if (!hits.length) { searchResults.classList.remove('open'); return; }
+  searchResults.innerHTML = hits.map(h => `
+    <div class="search-result-item" onclick="goTo('${h.id}')">
+      <div>
+        <div class="search-result-cat">${h.cat}</div>
+        <div class="search-result-title">${h.title}</div>
+        <div class="search-result-sub">${h.sub}</div>
+      </div>
+    </div>
+  `).join('');
+  searchResults.classList.add('open');
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.search-wrap')) searchResults.classList.remove('open');
+});
+
+function goTo(id) {
+  const el = document.getElementById(id);
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  searchResults.classList.remove('open');
+  searchInput.value = '';
+}
+
+// ── SIDEBAR ACTIVE ────────────────────────────────────────────────────────────
+function setActive(el) {
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Intersection observer for section visibility
+const sections = document.querySelectorAll('.content-section');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+sections.forEach(s => revealObserver.observe(s));
+
+// Active sidebar tracking via scroll
+const sectionIds = Array.from(document.querySelectorAll('[id]')).map(e => e.id);
+const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sectionIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && window.scrollY >= el.offsetTop - 80) current = id;
+  });
+  sidebarLinks.forEach(link => {
+    const href = link.getAttribute('href')?.replace('#','');
+    link.classList.toggle('active', href === current);
+  });
+}, { passive: true });
+
+// ── CALCULATORS ───────────────────────────────────────────────────────────────
+function calcSpindle() {
+  const sfm    = parseFloat(document.getElementById('sfm').value) || 0;
+  const dia    = parseFloat(document.getElementById('dia').value) || 0;
+  const ipt    = parseFloat(document.getElementById('ipt').value) || 0;
+  const flutes = parseFloat(document.getElementById('flutes').value) || 0;
+  if (!sfm || !dia) return;
+  const rpm  = (sfm * 3.82) / dia;
+  const feed = rpm * ipt * flutes;
+  document.getElementById('spindleRPM').innerHTML  = `${Math.round(rpm).toLocaleString()} <span class="result-unit">RPM</span>`;
+  document.getElementById('spindleFeed').textContent = feed ? `Feed Rate: ${feed.toFixed(1)} in/min` : '';
+  document.getElementById('spindleSub').textContent  = `SFM ${sfm} · Ø${dia}″ · ${flutes} flutes · ${ipt}″ chip load`;
+  document.getElementById('spindleResult').classList.add('show');
+}
+
+function calcBend() {
+  const t = parseFloat(document.getElementById('bThick').value)  || 0;
+  const r = parseFloat(document.getElementById('bRadius').value) || 0;
+  const a = parseFloat(document.getElementById('bAngle').value)  || 0;
+  const k = parseFloat(document.getElementById('kFactor').value) || 0.44;
+  if (!t || !r || !a) return;
+  const ba = (Math.PI / 180) * a * (r + k * t);
+  const ossb = Math.tan((a / 2) * Math.PI / 180) * (r + t);
+  const bd   = 2 * ossb - ba;
+  document.getElementById('bendBA').innerHTML = `${ba.toFixed(3)} <span class="result-unit">mm</span>`;
+  document.getElementById('bendSub').textContent = `Bend Deduction: ${bd.toFixed(3)} mm · OSSB: ${ossb.toFixed(3)} mm`;
+  document.getElementById('bendResult').classList.add('show');
+}
+
+const tapData = {
+  'M3 × 0.5':   { drill:'2.5mm',   depth75:'Ø2.5 · 75% thread',   note:'ISO standard' },
+  'M4 × 0.7':   { drill:'3.3mm',   depth75:'Ø3.3 · 75% thread',   note:'ISO standard' },
+  'M5 × 0.8':   { drill:'4.2mm',   depth75:'Ø4.2 · 75% thread',   note:'ISO standard' },
+  'M6 × 1.0':   { drill:'5.0mm',   depth75:'Ø5.0 · 75% thread',   note:'ISO standard' },
+  'M8 × 1.25':  { drill:'6.75mm',  depth75:'Ø6.75 · 75% thread',  note:'ISO standard' },
+  'M10 × 1.5':  { drill:'8.5mm',   depth75:'Ø8.5 · 75% thread',   note:'ISO standard' },
+  'M12 × 1.75': { drill:'10.2mm',  depth75:'Ø10.2 · 75% thread',  note:'ISO standard' },
+  'M16 × 2.0':  { drill:'14.0mm',  depth75:'Ø14.0 · 75% thread',  note:'ISO standard' },
+  'M20 × 2.5':  { drill:'17.5mm',  depth75:'Ø17.5 · 75% thread',  note:'ISO standard' },
+  'M24 × 3.0':  { drill:'21.0mm',  depth75:'Ø21.0 · 75% thread',  note:'ISO standard' },
+};
+
+function calcTapDrill() {
+  const size = document.getElementById('threadSize').value;
+  const data = tapData[size];
+  if (!data) return;
+  document.getElementById('tapDrill').innerHTML = `${data.drill} <span class="result-unit">tap drill</span>`;
+  document.getElementById('tapSub').textContent = `${data.depth75} · ${data.note}`;
+  document.getElementById('tapResult').classList.add('show');
+}
+
+function updateThreadList() {
+  const std = document.getElementById('threadStd').value;
+  const sel = document.getElementById('threadSize');
+  const metricOpts = ['M3 × 0.5','M4 × 0.7','M5 × 0.8','M6 × 1.0','M8 × 1.25','M10 × 1.5','M12 × 1.75','M16 × 2.0','M20 × 2.5','M24 × 3.0'];
+  const uncOpts    = ['1/4″-20','5/16″-18','3/8″-16','7/16″-14','1/2″-13','5/8″-11','3/4″-10','7/8″-9','1″-8'];
+  const unfOpts    = ['1/4″-28','5/16″-24','3/8″-24','7/16″-20','1/2″-20','5/8″-18','3/4″-16'];
+  const opts = std === 'Metric (M)' ? metricOpts : std === 'UNC' ? uncOpts : unfOpts;
+  sel.innerHTML = opts.map(o => `<option>${o}</option>`).join('');
+  document.getElementById('tapResult').classList.remove('show');
+}
+</script>
+</body>
+</html>
