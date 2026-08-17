@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  DOK™ — Document Object Kernel
+  KODEX™ — Kernel-Oriented Document Engine for X-height
   Copyright (C) 2026 KADsuite / withshalom
 
   This program is free software: you can redistribute it and/or modify
@@ -190,11 +190,30 @@ button { background:none; border:none; cursor:pointer; }
 #kx-stage { grid-area:stage; overflow:auto; background:var(--bg0); position:relative; }
 .kx-pages { padding:26px 0 60px; display:flex; flex-direction:column; align-items:center;
   gap:26px; min-height:100%; }
-.kx-spread { display:flex; gap:0; box-shadow:0 6px 28px rgba(0,0,0,0.55); }
+.kx-sizer { flex-shrink:0; }
+.kx-spread { display:flex; gap:0; box-shadow:0 6px 28px rgba(0,0,0,0.55); position:relative; }
+/* The fold. A 1px border reads at 100% zoom but disappears once kxFitScale()
+   shrinks a spread to fit a phone — and a barely-visible seam is exactly
+   what makes a two-page spread look like one wide page. This gradient
+   scales down with the spread (it lives inside the scaled element) and
+   stays legible at any size a spread is actually shown at. */
+.kx-spread::after {
+  content:''; position:absolute; top:0; bottom:0; left:50%;
+  width:28px; margin-left:-14px; pointer-events:none;
+  background:linear-gradient(to right,
+    rgba(0,0,0,0) 0%, rgba(0,0,0,0.32) 50%, rgba(0,0,0,0) 100%);
+}
 .kx-single { box-shadow:0 6px 28px rgba(0,0,0,0.55); }
 .kx-leaf { position:relative; background:var(--paper); color:#241a0e; overflow:hidden; flex-shrink:0; }
-.kx-leaf.kx-ghost { background:transparent; box-shadow:none; }
-.kx-leaf.verso { border-right:1px solid rgba(0,0,0,0.10); }
+/* The ghost is deliberately its own color: darker than real paper, but a
+   flat colour in its own right rather than paper-at-low-opacity — the old
+   approach kept it too close to the desk color to register as a shape at
+   all, reading as blacked-out dead space instead of "a cover with nothing
+   printed on it." This sits about a third of the way from desk to paper —
+   enough to be unmistakably a page-shaped object, not enough to be
+   mistaken for a real, readable one. */
+.kx-leaf.kx-ghost { background:#686156; }
+.kx-leaf.verso { border-right:1px solid rgba(0,0,0,0.14); }
 .kx-text { position:absolute; }
 .kx-grid { position:absolute; pointer-events:none; opacity:0; }
 .kx-pages.grid .kx-grid { opacity:1; background-repeat:repeat;
@@ -800,7 +819,6 @@ kbd {
   .mbar-item { padding:0 9px; font-size:12px; }
   .mrow { height:44px; font-size:13.5px; }
   .mdrop { min-width:248px; padding:6px; }
-  .brand-sub { display:none; }
   .kbd-list { grid-template-columns:1fr; }
 }
 /* A fingertip is roughly 9mm; 32px at typical phone density is under 6. These
@@ -866,7 +884,7 @@ kbd {
       <div class="brand-mark">KX</div>
       <div class="brand-txt">
         <div class="brand-name">KODEX</div>
-        <div class="brand-sub">Line-Matched Publishing</div>
+        <div class="brand-sub">Kernel-Oriented Document Engine for X-height</div>
       </div>
     </div>
 
@@ -2048,6 +2066,7 @@ let kxPages = [];
 let kxDirty = true;
 let kxTimer = null;
 let kxStaleVerses = [];
+let kxScale = 1;
 
 /* ── Units ────────────────────────────────────────────────────────────────
    One place converts, so a rounding choice made here cannot disagree with a
@@ -2344,8 +2363,20 @@ function kxSplit(html, room, g) {
 /* ── Render ───────────────────────────────────────────────────────────────
    Mirrored margins: the inside margin is the gutter, so it sits on the RIGHT
    of a verso and the LEFT of a recto. Getting this backwards is the classic
-   bound-book error — the text creeps into the spine on every other leaf. */
+   bound-book error — the text creeps into the spine on every other leaf.
+
+   Split in two: kxRender() decides what kxScale should be for the screen
+   you're actually looking at; kxRenderRaw() just builds the DOM at whatever
+   kxScale currently holds. kxWithTrueScale() (below, by the export
+   functions) needs the second one without the first — it sets kxScale to 1
+   itself and would rather kxRenderRaw() not immediately overwrite that. */
 function kxRender() {
+  const g = kxGeom();
+  kxScale = kxFitScale(g);
+  kxRenderRaw();
+}
+
+function kxRenderRaw() {
   const host = document.getElementById('kx-pages');
   if (!host) return;
   const g = kxGeom();
@@ -2364,14 +2395,14 @@ function kxRender() {
       if (!pg.recto) {
         spread = document.createElement('div');
         spread.className = 'kx-spread';
-        frag.appendChild(spread);
+        frag.appendChild(kxWrapScaled(spread, g.pw * 2, g.ph));
         spread.appendChild(kxLeaf(pg, g));
       } else {
         if (!spread) {
           spread = document.createElement('div');
           spread.className = 'kx-spread';
           spread.appendChild(kxSpacerLeaf(g));
-          frag.appendChild(spread);
+          frag.appendChild(kxWrapScaled(spread, g.pw * 2, g.ph));
         }
         spread.appendChild(kxLeaf(pg, g));
         spread = null;
@@ -2380,24 +2411,79 @@ function kxRender() {
       const w = document.createElement('div');
       w.className = 'kx-single';
       w.appendChild(kxLeaf(pg, g));
-      frag.appendChild(w);
+      frag.appendChild(kxWrapScaled(w, g.pw, g.ph));
     }
   });
+  // A trailing VERSO with no recto after it (the book ends on a left-hand
+  // page) leaves `spread` open with only one leaf placed — same blank-cover
+  // situation as page 1 opening on a recto, mirrored at the back of the
+  // book instead of the front. Close it out with the same ghost.
+  if (spread) spread.appendChild(kxSpacerLeaf(g));
   host.appendChild(frag);
   kxStatus();
   kxCentreScroll();
 }
 
-/* Same problem DOK solves with #sizer + centreScroll(), same fix. .kx-pages
-   centres its children with flexbox (align-items:center), which is fine
-   right up until a spread is wider than the screen — a two-page spread at
-   any real trim size is wider than any phone. Once that happens the browser
-   still opens the container at scrollLeft:0, which is the LEFT edge of a
-   box that flexbox has already pushed left-and-right of centre — so a
-   spread wider than the viewport opens shifted off to the right rather
-   than centred on the fold. Unlike DOK, KODEX never scales its stage, so
-   there is no zoom-driven trigger to hang this off; it has to run every
-   time the spread can change width — after every render. */
+/* A trim size is a physical measurement rendered at true CSS px (96dpi) —
+   never scaled, on the theory that a page should look the size it is. That
+   theory is only true when the page fits. A 6×9 trade spread is over
+   1100px wide; no phone is. Left unscaled, a spread that cannot fit the
+   screen can only ever be scrolled through a few hundred pixels at a time
+   — and a person looking at 300px of blank inside margin either side of a
+   barely-visible fold has no way to tell they are looking at a spread and
+   not one very wide, mostly empty page. Below is a plain fit-to-width
+   scale, recomputed on every render: the whole spread (or single page)
+   is shrunk to sit inside the stage with a little air on each side, so on
+   a phone both leaves — and the fold between them — are visible at once,
+   the way they would be if you were actually holding the book open.
+   Never scales UP past 100%: a small trim on a wide monitor should look
+   small, not stretched to fill the window. */
+function kxFitScale(g) {
+  if (!kxStageEl) return 1;
+  const natW = (KX.view === 2) ? g.pw * 2 : g.pw;
+  const avail = kxStageEl.clientWidth || window.innerWidth;
+  const gutter = avail < 700 ? 12 : 48;
+  return clamp((avail - gutter) / natW, 0.15, 1);
+}
+
+/* Reserves the SCALED footprint (a plain sized box) and scales the actual
+   spread/single element inside it from its top-left corner — the same
+   split DOK uses between #sizer and #pages, just applied per spread here
+   since KODEX can render many of them in one flowed column. Reserving the
+   scaled size (rather than the true size) is what keeps #kx-stage's
+   scrollWidth/scrollHeight — and so kxCentreScroll()'s math — matching
+   what is actually on screen.
+
+   el's own width/height are ALSO set explicitly here, to the TRUE
+   (unscaled) size — deliberately, not left to resolve on their own. A
+   block-level flex container with no width set doesn't shrink-wrap its
+   content the way an inline-block would; it fills its containing block,
+   which here is the sizer's SCALED (smaller) box. .kx-leaf has
+   flex-shrink:0, so the leaves inside refuse to shrink to match — they
+   overflow that undersized box instead of resizing into it. Chromium
+   happens to transform that overflow correctly; Safari was observed not
+   to, rendering one leaf scaled and the other escaping the transform at
+   full size. Giving the spread its true, unambiguous width up front means
+   there is never any overflow for an engine to get right or wrong. */
+function kxWrapScaled(el, natW, natH) {
+  const box = document.createElement('div');
+  box.className = 'kx-sizer';
+  box.style.width  = Math.round(natW * kxScale) + 'px';
+  box.style.height = Math.round(natH * kxScale) + 'px';
+  el.style.width  = natW + 'px';
+  el.style.height = natH + 'px';
+  el.style.transform = kxScale === 1 ? '' : 'scale(' + kxScale + ')';
+  el.style.transformOrigin = 'top left';
+  box.appendChild(el);
+  return box;
+}
+
+/* Same problem DOK solves with #sizer + centreScroll(), same fix, still
+   needed even with kxFitScale() above: fitting the spread to the screen
+   removes the OVERFLOW case, but #kx-stage can still be a shade wider than
+   its content (rounding, the 12/48px gutter) or briefly out of sync mid-
+   render, and flexbox's own centring only ever applies to content that
+   fits. This is the belt to that braces — it runs after every render. */
 function kxCentreScroll() {
   if (!kxStageEl) return;
   const over = kxStageEl.scrollWidth - kxStageEl.clientWidth;
@@ -2823,14 +2909,38 @@ function kxLineRec(node, txt, a, b, firstRect, leafBox, sizePt, bold, ital, seri
   };
 }
 
+/* PDF/KVS export reads real geometry off the rendered DOM (kxHarvestLines
+   uses getBoundingClientRect()), and that geometry is trusted against the
+   TRUE, unscaled page point size (g.pw / PT_PX etc.). kxFitScale() is a
+   pure display convenience — it must never be in effect while anything is
+   measuring the page, or every exported coordinate comes out scaled down
+   by whatever kxScale a phone happened to need. Export functions render
+   once for real at 1:1, measure, then hand the screen back exactly how
+   they found it. */
+function kxWithTrueScale(fn) {
+  const wasFit = kxScale !== 1;
+  if (wasFit) { kxScale = 1; kxRenderRaw(); }
+  return Promise.resolve().then(fn).finally(() => {
+    if (wasFit) { kxScale = kxFitScale(kxGeom()); kxRenderRaw(); }
+  });
+}
+
 async function kxExportPDF() {
   if (kxMode !== 'kodex') kxSetMode('kodex');
   if (kxDirty) kxRecompose();
   if (!kxPages.length) { toast('Nothing to publish yet'); return; }
   busy(true, 'Composing PDF');
   try {
-    const g = kxGeom();
-    const wpt = g.pw / PT_PX, hpt = g.ph / PT_PX;
+    await kxWithTrueScale(() => kxExportPDFBody());
+  } catch (err) {
+    console.error(err);
+    toast('PDF export failed: ' + (err && err.message ? err.message : 'unknown'));
+  } finally { busy(false); }
+}
+
+async function kxExportPDFBody() {
+  const g = kxGeom();
+  const wpt = g.pw / PT_PX, hpt = g.ph / PT_PX;
     const objs = [null];
     const alloc = () => { objs.push(null); return objs.length - 1; };
     const set = (id, dict, data) => { objs[id] = { dict, data: data || null }; };
@@ -2914,10 +3024,6 @@ async function kxExportPDF() {
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
     toast('Exported ' + name);
-  } catch (err) {
-    console.error(err);
-    toast('PDF export failed: ' + (err && err.message ? err.message : 'unknown'));
-  } finally { busy(false); }
 }
 
 /* Export the composed pages as KANVAS sheets — text objects at explicit
@@ -2927,6 +3033,10 @@ function kxExportKVS() {
   if (kxMode !== 'kodex') kxSetMode('kodex');
   if (kxDirty) kxRecompose();
   if (!kxPages.length) { toast('Nothing to export yet'); return; }
+  kxWithTrueScale(kxExportKVSBody);
+}
+
+function kxExportKVSBody() {
   const g = kxGeom();
   const sheets = [];
   document.querySelectorAll('#kx-pages .kx-leaf:not(.kx-ghost)').forEach(leaf => {
@@ -6827,7 +6937,7 @@ function bindEditor() {
     clearTimeout(bindEditor._r);
     bindEditor._r = setTimeout(() => {
       refitIfFitted(); drawRuler();
-      if (kxMode === 'kodex') kxCentreScroll();
+      if (kxMode === 'kodex') kxRender();
     }, 140);
   });
   if (window.visualViewport) {
